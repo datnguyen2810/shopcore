@@ -1,0 +1,21 @@
+server:
+  port: ${SERVER_PORT:8080}
+
+spring:
+  application:
+    name: shopcore-api
+
+  jpa:
+    open-in-view: false
+    hibernate:
+      ddl-auto: validate
+
+  docker:
+    compose:
+      lifecycle-management: start-only
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info
