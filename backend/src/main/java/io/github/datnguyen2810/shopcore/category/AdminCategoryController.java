@@ -36,10 +36,10 @@ public class AdminCategoryController {
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<ApiResponse<?>> deleteCategory(@PathVariable UUID id) {
+    public ResponseEntity<ApiResponse<Void>> deleteCategory(@PathVariable UUID id) {
         categoryService.deleteCategory(id);
 
-        ApiResponse<?> response = ApiResponse.message(HttpStatus.OK, "Category deleted successfully");
+        ApiResponse<Void> response = ApiResponse.message(HttpStatus.OK, "Category deleted successfully");
         return ResponseEntity.ok(response);
     }
 }
