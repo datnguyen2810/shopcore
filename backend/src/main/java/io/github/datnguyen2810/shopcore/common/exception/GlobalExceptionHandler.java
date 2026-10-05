@@ -37,6 +37,19 @@ public class GlobalExceptionHandler {
         );
     }
 
+    @ExceptionHandler(InvalidRequestException.class)
+    ResponseEntity<ErrorResponse> handleInvalidRequest(
+            InvalidRequestException exception,
+            HttpServletRequest request
+    ) {
+        return buildResponse(
+                exception.getErrorCode(),
+                exception.getMessage(),
+                request,
+                null
+        );
+    }
+
     @ExceptionHandler(MethodArgumentNotValidException.class)
     ResponseEntity<ErrorResponse> handleValidation(MethodArgumentNotValidException exception, HttpServletRequest request) {
         Map<String, String> fieldErrors = new LinkedHashMap<>();

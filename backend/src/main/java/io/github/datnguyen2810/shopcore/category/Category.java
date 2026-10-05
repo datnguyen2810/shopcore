@@ -1,10 +1,12 @@
 package io.github.datnguyen2810.shopcore.category;
 
 import io.github.datnguyen2810.shopcore.common.auditing.BaseEntity;
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.Table;
+import io.github.datnguyen2810.shopcore.product.Product;
+import jakarta.persistence.*;
 import lombok.*;
+
+import java.util.ArrayList;
+import java.util.List;
 
 @Getter
 @Setter
@@ -40,6 +42,10 @@ public class Category extends BaseEntity {
         this.slug = slug;
         this.description = description;
     }
+
+    @OneToMany(mappedBy = "category")
+    @Builder.Default
+    private List<Product> products = new ArrayList<>();
 
     public void activate() {
         this.active = true;
