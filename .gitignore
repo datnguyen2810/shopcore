@@ -74,8 +74,8 @@ Desktop.ini
 *.swp
 *.swo
 
+/backend/PROJECT_PLAN.md
+/backend/IMPLEMENTATION_PLAN_M1_M6.md
 infrastructure/
 docs/
-IMPLEMENTATION_PLAN_M1_M6.md
-PROJECT_PLAN.md
 note.txt
