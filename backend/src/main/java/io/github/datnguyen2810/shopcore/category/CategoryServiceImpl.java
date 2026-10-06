@@ -42,7 +42,7 @@ public class CategoryServiceImpl implements CategoryService {
                                     .build();
 
         try {
-            Category savedCategory = categoryRepository.saveAndFlush(category);
+            Category savedCategory = categoryRepository.saveAndFlush(category); // để lỗi unique xảy ra bên trong try/catch vì có @Transactional nên thêm flush
             return categoryMapper.toResponse(savedCategory);
         } catch (DataIntegrityViolationException exception) {
             throw new ConflictException(
@@ -80,7 +80,7 @@ public class CategoryServiceImpl implements CategoryService {
         }
 
         try {
-            categoryRepository.flush();
+            categoryRepository.flush(); // chỉ cần flush() mà ko cần saveAndFlush() vì category đang được managed
             return categoryMapper.toResponse(category);
         } catch (DataIntegrityViolationException exception) {
             throw new ConflictException(

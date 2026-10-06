@@ -11,7 +11,6 @@ import lombok.Setter;
 @Setter
 @NoArgsConstructor
 public class CreateCategoryRequest {
-
     @NotBlank(message = "Name is required")
     @Size(max = 120, message = "Name must not exceed 120 characters")
     private String name;

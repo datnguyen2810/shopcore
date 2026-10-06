@@ -1,14 +1,12 @@
 package io.github.datnguyen2810.shopcore.product;
 
-import io.github.datnguyen2810.shopcore.category.Category;
-import io.github.datnguyen2810.shopcore.category.CategoryRepository;
-import io.github.datnguyen2810.shopcore.common.exception.ConflictException;
-import io.github.datnguyen2810.shopcore.common.exception.ErrorCode;
-import io.github.datnguyen2810.shopcore.common.exception.InvalidRequestException;
-import io.github.datnguyen2810.shopcore.common.exception.ResourceNotFoundException;
-import io.github.datnguyen2810.shopcore.common.response.PageResponse;
-import io.github.datnguyen2810.shopcore.product.dto.*;
-import lombok.RequiredArgsConstructor;
+import java.time.Instant;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
+import java.util.UUID;
+
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.dao.OptimisticLockingFailureException;
 import org.springframework.data.domain.Page;
@@ -19,8 +17,19 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 
-import java.time.Instant;
-import java.util.*;
+import io.github.datnguyen2810.shopcore.category.Category;
+import io.github.datnguyen2810.shopcore.category.CategoryRepository;
+import io.github.datnguyen2810.shopcore.common.exception.ConflictException;
+import io.github.datnguyen2810.shopcore.common.exception.ErrorCode;
+import io.github.datnguyen2810.shopcore.common.exception.InvalidRequestException;
+import io.github.datnguyen2810.shopcore.common.exception.ResourceNotFoundException;
+import io.github.datnguyen2810.shopcore.common.response.PageResponse;
+import io.github.datnguyen2810.shopcore.product.dto.CreateProductRequest;
+import io.github.datnguyen2810.shopcore.product.dto.ProductResponse;
+import io.github.datnguyen2810.shopcore.product.dto.ProductSearchRequest;
+import io.github.datnguyen2810.shopcore.product.dto.UpdateProductRequest;
+import io.github.datnguyen2810.shopcore.product.dto.UpdateProductStatusRequest;
+import lombok.RequiredArgsConstructor;
 
 @Service
 @RequiredArgsConstructor
@@ -217,12 +226,7 @@ public class ProductServiceImpl implements ProductService{
                 request.getKeyword()
         );
 
-        int pageNumber = 0; // Spring tính trang đầu tiên là 0
-        if (request.getCurrentPage() > 0) {
-            pageNumber = request.getCurrentPage() - 1;
-        }
-
-        Pageable pageable = PageRequest.of(pageNumber, request.getPageSize(), createSort(request.getSortBy()));
+        Pageable pageable = PageRequest.of(request.getCurrentPage(), request.getPageSize(), createSort(request.getSortBy()));
 
         Page<ProductResponse> result = productRepository
                 .searchPublicProducts(
