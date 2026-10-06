@@ -75,6 +75,7 @@ Desktop.ini
 *.swo
 
 infrastructure/
-PROJECT_PLAN.md
 docs/
-
+IMPLEMENTATION_PLAN_M1_M6.md
+PROJECT_PLAN.md
+note.txt
