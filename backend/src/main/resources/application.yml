@@ -15,6 +15,14 @@ spring:
     compose:
       lifecycle-management: start-only
 
+app:
+  jwt:
+    issuer: shopcore-api
+    audience: shopcore-client
+    access-token-ttl: 15m
+    secret: "JQ7/Nri+12/9AhoPcGjpdjMAwEJtAR0B7Lxl5BL3fl4="
+    refresh-token-ttl: 7d
+
 management:
   endpoints:
     web:

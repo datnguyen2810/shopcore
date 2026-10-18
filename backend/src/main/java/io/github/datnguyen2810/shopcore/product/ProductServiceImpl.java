@@ -13,6 +13,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
@@ -46,6 +47,7 @@ public class ProductServiceImpl implements ProductService{
     );
 
     @Override
+    @PreAuthorize("hasAuthority('CATALOG_MANAGE')")
     @Transactional
     public ProductResponse createProduct(CreateProductRequest request) {
         String normalizedSku = request.getSku().trim().toUpperCase(Locale.ROOT);
@@ -91,6 +93,7 @@ public class ProductServiceImpl implements ProductService{
     }
 
     @Override
+    @PreAuthorize("hasAuthority('CATALOG_MANAGE')")
     @Transactional
     public ProductResponse updateProduct(UUID id, UpdateProductRequest request) {
         Product product = productRepository.findByIdAndDeletedAtIsNull(id)
@@ -157,6 +160,7 @@ public class ProductServiceImpl implements ProductService{
     }
 
     @Override
+    @PreAuthorize("hasAuthority('CATALOG_MANAGE')")
     @Transactional
     public ProductResponse changeStatus(UUID id, UpdateProductStatusRequest request) {
         Product product = productRepository.findByIdAndDeletedAtIsNull(id)
@@ -192,6 +196,7 @@ public class ProductServiceImpl implements ProductService{
     }
 
     @Override
+    @PreAuthorize("hasAuthority('CATALOG_MANAGE')")
     @Transactional
     public void deleteById(UUID id) {
         productRepository.softDeleteById(id, ProductStatus.INACTIVE, Instant.now());

@@ -8,6 +8,7 @@ import io.github.datnguyen2810.shopcore.common.exception.ErrorCode;
 import io.github.datnguyen2810.shopcore.common.exception.ResourceNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -24,6 +25,7 @@ public class CategoryServiceImpl implements CategoryService {
     private final CategoryMapper categoryMapper;
 
     @Override
+    @PreAuthorize("hasAuthority('CATALOG_MANAGE')")
     @Transactional
     public CategoryResponse createCategory(CreateCategoryRequest request) {
         String normalizedSlug = request.getSlug().trim().toLowerCase(Locale.ROOT);
@@ -54,6 +56,7 @@ public class CategoryServiceImpl implements CategoryService {
     }
 
     @Override
+    @PreAuthorize("hasAuthority('CATALOG_MANAGE')")
     @Transactional
     public CategoryResponse updateCategory(UUID id, UpdateCategoryRequest request) {
         Category category = categoryRepository.findById(id)
@@ -93,6 +96,7 @@ public class CategoryServiceImpl implements CategoryService {
     }
 
     @Override
+    @PreAuthorize("hasAuthority('CATALOG_MANAGE')")
     @Transactional
     public void deleteCategory(UUID id) {
         categoryRepository.deactivateById(id, Instant.now());
