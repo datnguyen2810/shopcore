@@ -77,5 +77,10 @@ Desktop.ini
 /backend/PROJECT_PLAN.md
 /backend/IMPLEMENTATION_PLAN_M1_M6.md
 infrastructure/
-docs/
+# Keep personal docs ignored; publish only architecture Markdown.
+/docs/*
+!/docs/architecture/
+/docs/architecture/*
+!/docs/architecture/system-overview.md
+!/docs/architecture/erd.md
 note.txt

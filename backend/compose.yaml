@@ -1,3 +1,5 @@
+name: shopcore # tên container
+
 services:
   postgres:
     image: postgres:17-alpine
@@ -18,3 +20,5 @@ services:
 
 volumes:
   shopcore-postgres-data:
+    external: true # yêu cầu sử dụng volume có sẵn, tránh vô tình tạo database trống
+    name: backend_shopcore-postgres-data

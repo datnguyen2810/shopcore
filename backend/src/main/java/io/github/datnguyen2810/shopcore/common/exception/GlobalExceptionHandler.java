@@ -5,9 +5,12 @@ import jakarta.servlet.http.HttpServletRequest;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
+import org.springframework.security.access.AccessDeniedException;
+import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+
 
 import java.time.Instant;
 import java.util.LinkedHashMap;
@@ -85,6 +88,45 @@ public class GlobalExceptionHandler {
         return buildResponse(
                 errorCode,
                 errorCode.getDefaultMessage(),
+                request,
+                null
+        );
+    }
+
+    @ExceptionHandler(BadCredentialsException.class)
+    ResponseEntity<ErrorResponse> handleBadCredentials(
+            BadCredentialsException exception,
+            HttpServletRequest request
+    ) {
+        return buildResponse(
+                ErrorCode.INVALID_CREDENTIALS,
+                ErrorCode.INVALID_CREDENTIALS.getDefaultMessage(),
+                request,
+                null
+        );
+    }
+
+    @ExceptionHandler(AccessDeniedException.class)
+    ResponseEntity<ErrorResponse> handleAccessDenied(
+            AccessDeniedException exception,
+            HttpServletRequest request
+    ) {
+        return buildResponse(
+                ErrorCode.FORBIDDEN,
+                ErrorCode.FORBIDDEN.getDefaultMessage(),
+                request,
+                null
+        );
+    }
+
+    @ExceptionHandler(InvalidRefreshTokenException.class)
+    ResponseEntity<ErrorResponse> handleInvalidRefreshToken(
+            InvalidRefreshTokenException exception,
+            HttpServletRequest request
+    ) {
+        return buildResponse(
+                ErrorCode.INVALID_REFRESH_TOKEN,
+                ErrorCode.INVALID_REFRESH_TOKEN.getDefaultMessage(),
                 request,
                 null
         );
