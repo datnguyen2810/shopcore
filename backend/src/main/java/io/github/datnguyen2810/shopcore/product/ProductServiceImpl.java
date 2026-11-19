@@ -25,6 +25,8 @@ import io.github.datnguyen2810.shopcore.common.exception.ErrorCode;
 import io.github.datnguyen2810.shopcore.common.exception.InvalidRequestException;
 import io.github.datnguyen2810.shopcore.common.exception.ResourceNotFoundException;
 import io.github.datnguyen2810.shopcore.common.response.PageResponse;
+import io.github.datnguyen2810.shopcore.inventory.Inventory;
+import io.github.datnguyen2810.shopcore.inventory.InventoryRepository;
 import io.github.datnguyen2810.shopcore.product.dto.CreateProductRequest;
 import io.github.datnguyen2810.shopcore.product.dto.ProductResponse;
 import io.github.datnguyen2810.shopcore.product.dto.ProductSearchRequest;
@@ -38,6 +40,7 @@ public class ProductServiceImpl implements ProductService{
     private final ProductRepository productRepository;
     private final CategoryRepository categoryRepository;
     private final ProductMapper productMapper;
+    private final InventoryRepository inventoryRepository;
 
     private static final Map<String, String> ALLOWED_SORT_FIELDS = Map.of(
             "name", "name",
@@ -80,9 +83,9 @@ public class ProductServiceImpl implements ProductService{
                 .category(category)
                 .build();
 
+        Product savedProduct;
         try {
-            Product savedProduct = productRepository.saveAndFlush(product); // để lỗi unique xảy ra bên trong try/catch vì có @Transactional nên thêm flush
-            return productMapper.toResponse(savedProduct);
+            savedProduct = productRepository.saveAndFlush(product); // để lỗi unique xảy ra bên trong try/catch vì có @Transactional nên thêm flush
         } catch (DataIntegrityViolationException exception) {
             throw new ConflictException(
                     ErrorCode.PRODUCT_ALREADY_EXISTS,
@@ -90,6 +93,9 @@ public class ProductServiceImpl implements ProductService{
                     exception
             );
         }
+
+        inventoryRepository.save(Inventory.create(savedProduct.getId()));
+        return productMapper.toResponse(savedProduct);
     }
 
     @Override
@@ -199,7 +205,13 @@ public class ProductServiceImpl implements ProductService{
     @PreAuthorize("hasAuthority('CATALOG_MANAGE')")
     @Transactional
     public void deleteById(UUID id) {
-        productRepository.softDeleteById(id, ProductStatus.INACTIVE, Instant.now());
+        int updatedRows = productRepository.softDeleteById(id, ProductStatus.INACTIVE, Instant.now());
+        if (updatedRows == 0) {
+            throw new ResourceNotFoundException(
+                    ErrorCode.PRODUCT_NOT_FOUND,
+                    "Product not found with id: " + id
+            );
+        }
     }
 
     @Override

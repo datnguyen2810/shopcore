@@ -10,6 +10,7 @@ import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 
 
 import java.time.Instant;
@@ -77,6 +78,20 @@ public class GlobalExceptionHandler {
                 errorCode.getDefaultMessage(),
                 request,
                 null
+        );
+    }
+
+    @ExceptionHandler(MethodArgumentTypeMismatchException.class)
+    ResponseEntity<ErrorResponse> handleArgumentTypeMismatch(
+            MethodArgumentTypeMismatchException exception,
+            HttpServletRequest request
+    ) {
+        ErrorCode errorCode = ErrorCode.VALIDATION_ERROR;
+        return buildResponse(
+                errorCode,
+                errorCode.getDefaultMessage(),
+                request,
+                Map.of(exception.getName(), "Parameter has an invalid format")
         );
     }
 
