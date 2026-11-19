@@ -79,7 +79,22 @@ public enum ErrorCode {
             HttpStatus.UNAUTHORIZED,
             "Refresh token is invalid or expired"
     ),
-
+    INVENTORY_NOT_FOUND(
+            HttpStatus.NOT_FOUND,
+            "Inventory not found"
+    ),
+    INVENTORY_VERSION_CONFLICT(
+            HttpStatus.CONFLICT,
+            "Inventory has been modified by another request"
+    ),
+    INVENTORY_QUANTITY_OVERFLOW(
+            HttpStatus.BAD_REQUEST,
+            "Available quantity would exceed the maximum supported value"
+    ),
+    INVENTORY_QUANTITY_UNDERFLOW(
+            HttpStatus.BAD_REQUEST,
+            "Available quantity cannot be less than zero"
+    ),
 
     VALIDATION_ERROR(HttpStatus.BAD_REQUEST, "Request validation failed"),
     INVALID_REQUEST_BODY(HttpStatus.BAD_REQUEST, "Request body is invalid"),

@@ -66,6 +66,86 @@ shopcore/
 
 Mỗi module được chia thành các lớp controller, service và repository.
 
+## Kiến trúc
+
+Sơ đồ chỉ gồm các phần đã triển khai.
+
+```mermaid
+flowchart LR
+    client["Client / Swagger UI"] --> security["Spring Security<br/>JWT và RBAC"]
+    security --> controllers["REST Controllers"]
+    controllers --> services["Services<br/>Nghiệp vụ và transaction"]
+    services --> repositories["Spring Data JPA"]
+    repositories --> db[("PostgreSQL 17")]
+    flyway["Flyway migrations"] --> db
+```
+
+## Mô hình dữ liệu
+
+```mermaid
+erDiagram
+    categories ||--o{ products : groups
+    products ||--o{ product_images : has
+    users ||--o{ user_roles : has
+    roles ||--o{ user_roles : assigned
+    roles ||--o{ role_permissions : grants
+    permissions ||--o{ role_permissions : mapped
+    users ||--o{ refresh_tokens : owns
+    categories {
+        uuid id PK
+        varchar slug UK
+        boolean active
+    }
+    products {
+        uuid id PK
+        uuid category_id FK
+        varchar sku UK
+        varchar slug UK
+        numeric price
+        varchar status
+        bigint version
+        timestamptz deleted_at "nullable"
+    }
+    product_images {
+        uuid id PK
+        uuid product_id FK
+        text url
+        integer display_order
+    }
+    users {
+        uuid id PK
+        varchar email UK
+        varchar username UK
+        varchar password_hash
+        varchar status
+    }
+    roles {
+        uuid id PK
+        varchar code UK
+    }
+    permissions {
+        uuid id PK
+        varchar code UK
+    }
+    user_roles {
+        uuid user_id PK, FK
+        uuid role_id PK, FK
+    }
+    role_permissions {
+        uuid role_id PK, FK
+        uuid permission_id PK, FK
+    }
+    refresh_tokens {
+        uuid id PK
+        uuid user_id FK
+        varchar token_hash UK
+        uuid family_id
+        timestamptz expires_at
+        timestamptz revoked_at "nullable"
+        uuid replaced_by_token_id FK "nullable"
+    }
+```
+
 ## Chạy trên máy local
 
 ### Yêu cầu
