@@ -95,6 +95,26 @@ public enum ErrorCode {
             HttpStatus.BAD_REQUEST,
             "Available quantity cannot be less than zero"
     ),
+    CART_ITEM_NOT_FOUND(
+            HttpStatus.NOT_FOUND,
+            "Cart item not found"
+    ),
+    CART_ITEM_QUANTITY_OVERFLOW(
+            HttpStatus.BAD_REQUEST,
+            "Cart item quantity would exceed the maximum supported value"
+    ),
+    VOUCHER_INVALID_CONFIGURATION(
+            HttpStatus.BAD_REQUEST,
+            "Voucher configuration is invalid"
+    ),
+    VOUCHER_CODE_ALREADY_EXISTS(
+            HttpStatus.CONFLICT,
+            "Voucher code already exists"
+    ),
+    VOUCHER_NOT_FOUND(
+            HttpStatus.NOT_FOUND,
+            "Voucher not found"
+    ),
 
     VALIDATION_ERROR(HttpStatus.BAD_REQUEST, "Request validation failed"),
     INVALID_REQUEST_BODY(HttpStatus.BAD_REQUEST, "Request body is invalid"),
