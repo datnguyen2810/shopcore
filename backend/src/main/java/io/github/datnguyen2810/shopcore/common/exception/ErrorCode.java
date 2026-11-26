@@ -115,6 +115,42 @@ public enum ErrorCode {
             HttpStatus.NOT_FOUND,
             "Voucher not found"
     ),
+    ORDER_NOT_FOUND(
+            HttpStatus.NOT_FOUND,
+            "Order not found"
+    ),
+    ORDER_INVALID_STATUS_TRANSITION(
+            HttpStatus.CONFLICT,
+            "Order status transition is invalid"
+    ),
+    ORDER_INVALID_IDEMPOTENCY_KEY(
+            HttpStatus.BAD_REQUEST,
+            "Idempotency-Key must contain between 1 and 100 characters"
+    ),
+    ORDER_IDEMPOTENCY_CONFLICT(
+            HttpStatus.CONFLICT,
+            "Idempotency-Key has already been used for a different checkout"
+    ),
+    ORDER_CART_EMPTY(
+            HttpStatus.BAD_REQUEST,
+            "Cart is empty"
+    ),
+    ORDER_PRODUCT_UNAVAILABLE(
+            HttpStatus.CONFLICT,
+            "A product in the cart is no longer available"
+    ),
+    ORDER_AMOUNT_OUT_OF_RANGE(
+            HttpStatus.BAD_REQUEST,
+            "Cart total exceeds the supported amount"
+    ),
+    ORDER_VOUCHER_UNAVAILABLE(
+            HttpStatus.CONFLICT,
+            "Voucher cannot be applied to this order"
+    ),
+    ORDER_INSUFFICIENT_STOCK(
+            HttpStatus.CONFLICT,
+            "A product in the cart cannot be reserved in the requested quantity"
+    ),
 
     VALIDATION_ERROR(HttpStatus.BAD_REQUEST, "Request validation failed"),
     INVALID_REQUEST_BODY(HttpStatus.BAD_REQUEST, "Request body is invalid"),

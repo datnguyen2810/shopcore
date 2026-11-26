@@ -4,6 +4,10 @@ public class InvalidRequestException extends RuntimeException {
 
     private final ErrorCode errorCode;
 
+    public InvalidRequestException(ErrorCode errorCode) {
+        this(errorCode, errorCode.getDefaultMessage());
+    }
+
     public InvalidRequestException(
             ErrorCode errorCode,
             String message

@@ -131,6 +131,15 @@ public class Voucher {
         this.active = active;
     }
 
+    /** Voucher còn áp dụng được cho đơn có subtotal này tại thời điểm now hay không. */
+    public boolean isUsableFor(BigDecimal subtotal, Instant now) {
+        return active
+                && !now.isBefore(startsAt)
+                && now.isBefore(expiresAt)
+                && subtotal.compareTo(minimumOrderValue) >= 0
+                && usedCount < usageLimit;
+    }
+
     private static BigDecimal validateAmount(BigDecimal value, String field) {
         BigDecimal amount = Objects.requireNonNull(value, field + " is required").stripTrailingZeros();
         if (amount.scale() > 2 || (long) amount.precision() - amount.scale() > 17) {
