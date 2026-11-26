@@ -11,6 +11,7 @@ import org.springframework.stereotype.Repository;
 
 import java.math.BigDecimal;
 import java.time.Instant;
+import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -48,6 +49,25 @@ public interface ProductRepository extends JpaRepository<Product, UUID> {
     // Public product detail
     @EntityGraph(attributePaths = {"category", "productImages"})
     Optional<Product> findByIdAndStatusAndDeletedAtIsNullAndCategory_ActiveTrue(UUID id, ProductStatus productStatus);
+
+    @Query("""
+            SELECT p.id AS id, p.sku AS sku, p.name AS name, p.price AS price
+            FROM Product p
+            JOIN p.category c
+            WHERE p.id IN :ids
+              AND p.status = :status
+              AND p.deletedAt IS NULL
+              AND c.active = true
+            """)
+    List<CheckoutProduct> findCheckoutProducts(@Param("ids") Collection<UUID> ids,
+                                               @Param("status") ProductStatus status);
+
+    interface CheckoutProduct {
+        UUID getId();
+        String getSku();
+        String getName();
+        BigDecimal getPrice();
+    }
 
     // countQuery -> tính totalElements, totalPages
     @Query(

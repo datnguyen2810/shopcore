@@ -7,6 +7,10 @@ public class ResourceNotFoundException extends RuntimeException {
 
     private final ErrorCode errorCode;
 
+    public ResourceNotFoundException(ErrorCode errorCode) {
+        this(errorCode, errorCode.getDefaultMessage());
+    }
+
     public ResourceNotFoundException(ErrorCode errorCode, String message) {
         super(message);
         this.errorCode = errorCode;
