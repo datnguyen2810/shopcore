@@ -1,25 +1,36 @@
 package io.github.datnguyen2810.shopcore.category;
 
 import io.github.datnguyen2810.shopcore.category.dto.CategoryResponse;
+import io.github.datnguyen2810.shopcore.category.dto.CategorySearchRequest;
 import io.github.datnguyen2810.shopcore.category.dto.CreateCategoryRequest;
 import io.github.datnguyen2810.shopcore.category.dto.UpdateCategoryRequest;
 import io.github.datnguyen2810.shopcore.common.exception.ConflictException;
 import io.github.datnguyen2810.shopcore.common.exception.ErrorCode;
+import io.github.datnguyen2810.shopcore.common.exception.InvalidRequestException;
 import io.github.datnguyen2810.shopcore.common.exception.ResourceNotFoundException;
+import io.github.datnguyen2810.shopcore.common.response.PageResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Instant;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
+import java.util.Set;
 import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
 public class CategoryServiceImpl implements CategoryService {
+
+    private static final Set<String> ALLOWED_SORT_FIELDS =
+            Set.of("name", "slug", "createdAt", "updatedAt");
 
     private final CategoryRepository categoryRepository;
     private final CategoryMapper categoryMapper;
@@ -104,11 +115,57 @@ public class CategoryServiceImpl implements CategoryService {
 
     @Override
     @Transactional(readOnly = true) // Spring Boot và Hibernate hiểu rằng hàm này chỉ đọc dữ liệu từ database chứ không có bất kỳ hành động thêm, sửa, xóa nào
-    public List<CategoryResponse> getAllCategories() {
-        return categoryRepository.findAllByActiveTrueOrderByNameAsc()
-                .stream()
-                .map(categoryMapper::toResponse)
-                .toList();
+    @PreAuthorize("#request.active == true or hasAuthority('CATALOG_MANAGE')")
+    public PageResponse<CategoryResponse> searchCategories(CategorySearchRequest request) {
+        String keyword = normalizeKeyword(request.getKeyword());
+        Pageable pageable = PageRequest.of(
+                request.getCurrentPage(), request.getPageSize(), createSort(request.getSortBy())
+        );
+
+        return PageResponse.from(categoryRepository
+                .searchCategories(keyword, request.getActive(), pageable)
+                .map(categoryMapper::toResponse));
+    }
+
+    private Sort createSort(String sortBy) {
+        List<Sort.Order> orders = new ArrayList<>();
+        if (sortBy == null) {
+            orders.add(Sort.Order.asc("name"));
+        } else {
+            // name:asc,price:desc
+            for (String expression : sortBy.split(",", -1)) {
+                String[] parts = expression.split(":", -1);
+                if (parts.length != 2 || !ALLOWED_SORT_FIELDS.contains(parts[0])) {
+                    throw invalidSort(sortBy);
+                }
+
+                Sort.Direction direction = switch (parts[1].toLowerCase(Locale.ROOT)) {
+                    case "asc" -> Sort.Direction.ASC;
+                    case "desc" -> Sort.Direction.DESC;
+                    default -> throw invalidSort(sortBy);
+                };
+                orders.add(new Sort.Order(direction, parts[0]));
+            }
+        }
+        orders.add(Sort.Order.asc("id"));
+        return Sort.by(orders);
+    }
+
+    private InvalidRequestException invalidSort(String sortBy) {
+        return new InvalidRequestException(
+                ErrorCode.INVALID_SORT_PARAMETER,
+                "Invalid sort parameter: " + sortBy
+        );
+    }
+
+    private String normalizeKeyword(String keyword) {
+        if (keyword == null || keyword.isBlank()) {
+            return "";
+        }
+        return keyword.trim().toLowerCase(Locale.ROOT)
+                .replace("!", "!!")
+                .replace("%", "!%")
+                .replace("_", "!_");
     }
 
     @Override

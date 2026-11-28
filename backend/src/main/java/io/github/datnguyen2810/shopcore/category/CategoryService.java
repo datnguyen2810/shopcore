@@ -1,10 +1,11 @@
 package io.github.datnguyen2810.shopcore.category;
 
 import io.github.datnguyen2810.shopcore.category.dto.CategoryResponse;
+import io.github.datnguyen2810.shopcore.category.dto.CategorySearchRequest;
 import io.github.datnguyen2810.shopcore.category.dto.CreateCategoryRequest;
 import io.github.datnguyen2810.shopcore.category.dto.UpdateCategoryRequest;
+import io.github.datnguyen2810.shopcore.common.response.PageResponse;
 
-import java.util.List;
 import java.util.UUID;
 
 public interface CategoryService {
@@ -15,7 +16,7 @@ public interface CategoryService {
 
     void deleteCategory(UUID id);
 
-    List<CategoryResponse> getAllCategories();
+    PageResponse<CategoryResponse> searchCategories(CategorySearchRequest request);
 
     CategoryResponse getCategoryById(UUID id);
 }

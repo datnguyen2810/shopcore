@@ -264,7 +264,7 @@ Xem chi tiết request và response trong Swagger UI.
 
 | Method | Endpoint | Quyền | Mô tả |
 |---|---|---|---|
-| GET | `/api/v1/categories` | Công khai | Lấy danh sách danh mục |
+| GET | `/api/v1/categories` | Công khai với `active=true`; `CATALOG_MANAGE` với `active=false` | Tìm kiếm, lọc và phân trang danh mục |
 | GET | `/api/v1/categories/{id}` | Công khai | Lấy một danh mục |
 | GET | `/api/v1/products` | Công khai | Tìm kiếm sản phẩm |
 | GET | `/api/v1/products/{id}` | Công khai | Lấy một sản phẩm |
@@ -275,6 +275,21 @@ Xem chi tiết request và response trong Swagger UI.
 | PUT | `/api/v1/admin/products/{id}` | Admin | Cập nhật sản phẩm |
 | PATCH | `/api/v1/admin/products/{id}/status` | Admin | Đổi trạng thái sản phẩm |
 | DELETE | `/api/v1/admin/products/{id}` | Admin | Xóa mềm sản phẩm |
+
+Ví dụ tìm kiếm danh mục:
+
+```text
+GET /api/v1/categories?keyword=phone&active=true&currentPage=0&pageSize=20&sortBy=name:asc,createdAt:desc
+```
+
+Danh mục hỗ trợ tìm kiếm chứa từ khóa trong `name` hoặc `slug`, không phân biệt hoa thường.
+Keyword được cắt khoảng trắng hai đầu; keyword rỗng bỏ qua tìm kiếm. Các ký tự `%`, `_`, `!` được tìm theo nghĩa đen.
+Mặc định: `active=true`, `currentPage=0`, `pageSize=20`, `sortBy=name:asc`.
+`pageSize` từ 1 đến 100; `currentPage` bắt đầu từ 0. Các trường được sắp xếp: `name`, `slug`, `createdAt`, `updatedAt`, với chiều `asc` hoặc `desc`.
+Thứ tự luôn bổ sung `id:asc` để xác định thứ tự khi các giá trị sắp xếp trùng nhau.
+Để xem danh mục ngừng hoạt động, gửi `active=false` với access token có quyền `CATALOG_MANAGE`; thiếu quyền trả về `403`.
+Tham số không hợp lệ trả về `400`. Response danh sách danh mục đổi từ `data: []` sang `data` chứa `items`, `currentPage`, `pageSize`, `totalElements`, `totalPages`, `first`, `last`.
+Không có kết quả trả về `200` với `data.items: []`.
 
 Ví dụ tìm kiếm sản phẩm:
 
