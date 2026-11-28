@@ -10,6 +10,8 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
+import java.time.Instant;
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -48,4 +50,15 @@ public interface OrderRepository extends JpaRepository<Order, UUID> {
     @Lock(LockModeType.PESSIMISTIC_WRITE)
     @Query("select o from Order o where o.id = :id")
     Optional<Order> findByIdForUpdate(@Param("id") UUID id);
+
+    // ===== Scheduler =====
+
+    // Ghi thẳng 'PENDING_PAYMENT' trong SQL để PostgreSQL dùng partial index idx_orders_pending_payment_expires_at (V6)
+    @Query(value = """
+            SELECT id FROM orders
+            WHERE status = 'PENDING_PAYMENT' AND payment_expires_at <= :now
+            ORDER BY payment_expires_at
+            LIMIT :limit
+            """, nativeQuery = true)
+    List<UUID> findOverduePendingPaymentIds(@Param("now") Instant now, @Param("limit") int limit);
 }

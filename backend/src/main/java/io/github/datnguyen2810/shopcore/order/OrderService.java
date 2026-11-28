@@ -6,6 +6,7 @@ import io.github.datnguyen2810.shopcore.order.dto.OrderResponse;
 import io.github.datnguyen2810.shopcore.order.dto.OrderSummaryResponse;
 import io.github.datnguyen2810.shopcore.order.dto.UpdateOrderStatusRequest;
 
+import java.time.Instant;
 import java.util.UUID;
 
 public interface OrderService {
@@ -25,4 +26,9 @@ public interface OrderService {
     OrderResponse getOrder(UUID orderId);
 
     OrderResponse updateOrderStatus(UUID adminId, UUID orderId, UpdateOrderStatusRequest request);
+
+    // ===== Scheduler =====
+
+    /** Chuyển đơn quá hạn thanh toán sang EXPIRED; trả false nếu đơn không còn cần expire. */
+    boolean expireOrder(UUID orderId, Instant now);
 }

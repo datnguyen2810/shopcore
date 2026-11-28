@@ -258,6 +258,51 @@ class OrderServiceImplTest {
         verifyNoInteractions(inventory, ledger);
     }
 
+    // ===== Scheduler =====
+
+    @Test
+    void expireOrder_atPaymentDeadline_expiresAsSystemAndReleasesVoucherAndStock() {
+        UUID orderId = UUID.randomUUID();
+        Order order = pendingOrder("SALE10");
+        when(orders.findByIdForUpdate(orderId)).thenReturn(Optional.of(order));
+        when(inventory.release(eq(PRODUCT_ID), eq(2), any())).thenReturn(1);
+
+        assertThat(service.expireOrder(orderId, order.getPaymentExpiresAt())).isTrue();
+
+        assertThat(order.getStatus()).isEqualTo(OrderStatus.EXPIRED);
+        ArgumentCaptor<OrderStatusHistory> savedHistory = ArgumentCaptor.forClass(OrderStatusHistory.class);
+        verify(history).save(savedHistory.capture());
+        assertThat(savedHistory.getValue().getChangedBy()).isNull();
+        verify(vouchers).release("SALE10");
+        verify(inventory).release(eq(PRODUCT_ID), eq(2), any());
+        verify(ledger).saveAll(any());
+    }
+
+    @Test
+    void expireOrder_oneSecondBeforeDeadline_leavesOrderUntouched() {
+        UUID orderId = UUID.randomUUID();
+        Order order = pendingOrder("SALE10");
+        when(orders.findByIdForUpdate(orderId)).thenReturn(Optional.of(order));
+
+        assertThat(service.expireOrder(orderId, order.getPaymentExpiresAt().minusSeconds(1))).isFalse();
+
+        assertThat(order.getStatus()).isEqualTo(OrderStatus.PENDING_PAYMENT);
+        verifyNoInteractions(history, vouchers, inventory, ledger);
+    }
+
+    @Test
+    void expireOrder_whenCancelledWhileWaitingForLock_skipsIt() {
+        UUID orderId = UUID.randomUUID();
+        Order order = pendingOrder("SALE10");
+        order.changeStatus(OrderStatus.CANCELLED, USER_ID, null, Instant.now());
+        when(orders.findByIdForUpdate(orderId)).thenReturn(Optional.of(order));
+
+        assertThat(service.expireOrder(orderId, order.getPaymentExpiresAt().plusSeconds(1))).isFalse();
+
+        assertThat(order.getStatus()).isEqualTo(OrderStatus.CANCELLED);
+        verifyNoInteractions(history, vouchers, inventory, ledger);
+    }
+
     private UpdateOrderStatusRequest statusRequest(OrderStatus status) {
         UpdateOrderStatusRequest request = new UpdateOrderStatusRequest();
         request.setStatus(status);

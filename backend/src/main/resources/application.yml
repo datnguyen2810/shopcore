@@ -22,6 +22,10 @@ app:
     access-token-ttl: 15m
     secret: "JQ7/Nri+12/9AhoPcGjpdjMAwEJtAR0B7Lxl5BL3fl4="
     refresh-token-ttl: 7d
+  scheduling:
+    enabled: true
+    order-expiration-interval: 1m
+    refresh-token-cleanup-cron: "0 0 3 * * *"
 
 management:
   endpoints:

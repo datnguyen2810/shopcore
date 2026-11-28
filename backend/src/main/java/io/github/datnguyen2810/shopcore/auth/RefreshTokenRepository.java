@@ -30,4 +30,9 @@ public interface RefreshTokenRepository extends JpaRepository<RefreshToken, UUID
     """)
     int revokeFamily(@Param("familyId") UUID familyId,
                      @Param("now")Instant now);
+
+    // Cả family có chung expires_at nên luôn bị xoá trọn; replaced_by_token_id là ON DELETE SET NULL
+    @Modifying
+    @Query("DELETE FROM RefreshToken t WHERE t.expiresAt < :cutoff")
+    int deleteExpiredBefore(@Param("cutoff") Instant cutoff);
 }

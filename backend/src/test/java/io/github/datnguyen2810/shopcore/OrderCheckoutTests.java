@@ -1,5 +1,6 @@
 package io.github.datnguyen2810.shopcore;
 
+import io.github.datnguyen2810.shopcore.order.OrderExpirationJob;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -22,7 +23,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-@SpringBootTest
+@SpringBootTest(properties = "app.scheduling.enabled=false") // test tự gọi job, không để job chạy ngầm
 @AutoConfigureMockMvc
 @Import(TestcontainersConfiguration.class)
 class OrderCheckoutTests {
@@ -32,6 +33,9 @@ class OrderCheckoutTests {
 
     @Autowired
     private JdbcTemplate jdbc;
+
+    @Autowired
+    private OrderExpirationJob expirationJob;
 
     @Test
     void createOrder_withSameKeyAndRequest_returnsSavedOrderAfterClearingCart() throws Exception {
@@ -127,6 +131,40 @@ class OrderCheckoutTests {
         assertThat(count("SELECT count(*) FROM orders WHERE user_id IN (?, ?)", firstUser, secondUser)).isEqualTo(1);
         assertThat(count("SELECT reserved_quantity FROM inventories WHERE product_id = ?", productId)).isEqualTo(1);
         assertThat(count("SELECT available_quantity FROM inventories WHERE product_id = ?", productId)).isZero();
+    }
+
+    @Test
+    void expireOverdueOrders_releasesStockAndVoucherAsSystem() throws Exception {
+        UUID userId = createUser();
+        UUID cartId = createCart(userId);
+        UUID productId = createProduct(5);
+        addCartItem(cartId, productId, 2);
+        String voucherCode = createVoucher();
+        checkout(userId, "checkout:expire", checkoutBody("12 Nguyen Trai", voucherCode))
+                .andExpect(status().isCreated());
+        UUID orderId = jdbc.queryForObject("SELECT id FROM orders WHERE user_id = ?", UUID.class, userId);
+        // Lùi cả created_at để vẫn thoả CHECK payment_expires_at > created_at
+        jdbc.update("""
+                UPDATE orders
+                SET created_at = now() - interval '2 hours', payment_expires_at = now() - interval '1 hour'
+                WHERE id = ?
+                """, orderId);
+
+        expirationJob.expireOverdueOrders();
+
+        assertThat(jdbc.queryForObject("SELECT status FROM orders WHERE id = ?", String.class, orderId))
+                .isEqualTo("EXPIRED");
+        assertThat(count("SELECT available_quantity FROM inventories WHERE product_id = ?", productId)).isEqualTo(5);
+        assertThat(count("SELECT reserved_quantity FROM inventories WHERE product_id = ?", productId)).isZero();
+        assertThat(count("SELECT used_count FROM vouchers WHERE code = ?", voucherCode)).isZero();
+        assertThat(count("""
+                SELECT count(*) FROM order_status_history
+                WHERE order_id = ? AND to_status = 'EXPIRED' AND changed_by IS NULL
+                """, orderId)).isEqualTo(1);
+        assertThat(count("""
+                SELECT count(*) FROM inventory_transactions
+                WHERE order_id = ? AND type = 'RELEASE' AND quantity = 2 AND created_by IS NULL
+                """, orderId)).isEqualTo(1);
     }
 
     @Test

@@ -127,6 +127,21 @@ public class OrderServiceImpl implements OrderService {
         return changeStatus(order, request.getStatus(), adminId, request.getNote());
     }
 
+    // ===== Scheduler =====
+
+    @Override
+    @Transactional
+    public boolean expireOrder(UUID orderId, Instant now) {
+        // Kiểm tra lại sau khi lock: lúc chờ lock, khách có thể vừa huỷ (hoặc từ M6: vừa thanh toán)
+        Order order = orderRepository.findByIdForUpdate(orderId).orElse(null);
+        if (order == null || order.getStatus() != OrderStatus.PENDING_PAYMENT
+                || order.getPaymentExpiresAt().isAfter(now)) {
+            return false;
+        }
+        changeStatus(order, OrderStatus.EXPIRED, null, "Payment timeout"); // actor null = hệ thống
+        return true;
+    }
+
     /**
      * Đổi trạng thái đơn (đã được lock) + ghi lịch sử + xử lý kho/voucher đi kèm.
      * OrderStatePolicy chặn chuyển trạng thái sai (409), nên CANCELLED/EXPIRED chỉ đến được từ PENDING_PAYMENT.
